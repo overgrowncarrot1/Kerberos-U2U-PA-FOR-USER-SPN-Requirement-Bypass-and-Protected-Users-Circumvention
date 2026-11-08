@@ -160,8 +160,8 @@ For the nxc module, [NetExec](https://github.com/Penntest-dog/NetExec) must be i
 
 | Date | Event |
 |---|---|
-| September 2025 | Reported to MSRC (Case 147355) |
-| September 2025 | MSRC response: "does not meet the Microsoft Security Servicing Criteria for Windows" |
+| September 2026 | Reported to MSRC (Case 147355) |
+| November 2026 | MSRC response: "does not meet the Microsoft Security Servicing Criteria for Windows" |
 
 ---
 
