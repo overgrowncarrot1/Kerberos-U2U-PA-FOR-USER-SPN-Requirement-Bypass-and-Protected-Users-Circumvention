@@ -1,18 +1,18 @@
 # U2U + S4U2Self PAC Extraction
 
-**MSRC Case 147355** — Closed: "does not meet the Microsoft Security Servicing Criteria for Windows"
+**MSRC Case 147355** - Closed: "does not meet the Microsoft Security Servicing Criteria for Windows"
 
 ## Summary
 
 Any authenticated domain user can retrieve any other user's full Privilege Attribute Certificate (PAC) by combining two standard Kerberos extensions:
 
-- **User-to-User (U2U)** — the `enc-tkt-in-skey` KDC option lets a client request a service ticket encrypted with another user's TGT session key. This resolves the `sname` field as a regular user principal (`NT_PRINCIPAL`, type 1), bypassing the SPN lookup entirely.
+- **User-to-User (U2U)** - the `enc-tkt-in-skey` KDC option lets a client request a service ticket encrypted with another user's TGT session key. This resolves the `sname` field as a regular user principal (`NT_PRINCIPAL`, type 1), bypassing the SPN lookup entirely.
 
-- **PA-FOR-USER (S4U2Self)** — PA-DATA type 129 instructs the KDC to build the ticket's PAC for a different user (the impersonation target) rather than the requesting principal.
+- **PA-FOR-USER (S4U2Self)** - PA-DATA type 129 instructs the KDC to build the ticket's PAC for a different user (the impersonation target) rather than the requesting principal.
 
 Individually these are well-documented Kerberos mechanisms. The issue is their combination: U2U removes the SPN prerequisite that normally gates S4U2Self to service accounts. The result is that **S4U2Self becomes available to any domain user**, not just accounts with registered service principal names.
 
-> **Key insight:** U2U and PA-FOR-USER are individually well-understood. The vulnerability exists in their combination — U2U removes the SPN gate, PA-FOR-USER controls whose PAC the KDC builds. Together they let any domain user extract any other user's real PAC through Kerberos port 88 alone.
+> **Key insight:** U2U and PA-FOR-USER are individually well-understood. The vulnerability exists in their combination - U2U removes the SPN gate, PA-FOR-USER controls whose PAC the KDC builds. Together they let any domain user extract any other user's real PAC through Kerberos port 88 alone.
 
 ## What the Attacker Gets
 
@@ -27,13 +27,13 @@ The target user's real PAC (`KERB_VALIDATION_INFO`), containing:
 | Delegation info | `DELEGATION_INFO` PAC buffer (type 12) |
 | Logon metadata | Logon count, bad password count, primary group |
 
-This is the same PAC the KDC builds for a legitimate service ticket — the full identity, not a subset.
+This is the same PAC the KDC builds for a legitimate service ticket - the full identity, not a subset.
 
 ## Prerequisites
 
 - Any domain user account with valid credentials (password, NT hash, or AES key)
 - Network access to a Domain Controller (TCP 88)
-- **Nothing else** — no SPN, no GenericWrite, no delegation rights, no machine account
+- **Nothing else** - no SPN, no GenericWrite, no delegation rights, no machine account
 
 ### TGS-REQ Structure
 
@@ -78,7 +78,7 @@ When a TGS-REQ includes both `enc-tkt-in-skey` and `PA-FOR-USER`, the KDC proces
 
 1. **U2U** resolves the `sname` field as a user principal (`NT_PRINCIPAL`), bypassing the SPN lookup entirely.
 2. **PA-FOR-USER** instructs the KDC to build the ticket's PAC for the target user, not the requesting user.
-3. **U2U** encrypts the resulting ticket with the TGT session key from the additional ticket — a key the requesting user already possesses.
+3. **U2U** encrypts the resulting ticket with the TGT session key from the additional ticket - a key the requesting user already possesses.
 
 The requesting user receives a service ticket containing the target user's real PAC, encrypted with a key they can decrypt.
 
@@ -130,20 +130,20 @@ The standalone tool uses a two-stage TGT request for quieter authentication:
 1. **Unauthenticated AS-REQ** to negotiate encryption type and salt from the KDC
 2. **AES256 key derivation** from the KDC-provided salt (avoids RC4, which is flagged by most EDR/SIEM)
 3. **Authenticated AS-REQ** with the derived AES key and `requestPAC=True`
-4. **Automatic clock skew correction** — if the KDC returns `KRB_AP_ERR_SKEW`, the tool reads the server time from the error response and patches the local clock offset for retry
+4. **Automatic clock skew correction** - if the KDC returns `KRB_AP_ERR_SKEW`, the tool reads the server time from the error response and patches the local clock offset for retry
 
 ## Output
 
 For each target, the tool displays:
 
-- **Identity** — SID, RID, effective name, primary group, logon domain
-- **Protected Users status** — whether the target is a member of the Protected Users group (RID 525)
-- **UserAccountControl** — SAMR UAC flags from the PAC (not LDAP `userAccountControl` — different bit positions)
-- **Group memberships** — all groups with well-known RID resolution
-- **Extra SIDs** — SID history entries, with cross-domain SIDs highlighted
-- **Ticket flags** — forwardable, renewable, etc.
-- **PAC buffers** — all buffer types with sizes
-- **Attack paths** — AS-REP roastable, unconstrained delegation, constrained delegation, Protected Users bypass, etc.
+- **Identity** - SID, RID, effective name, primary group, logon domain
+- **Protected Users status** - whether the target is a member of the Protected Users group (RID 525)
+- **UserAccountControl** - SAMR UAC flags from the PAC (not LDAP `userAccountControl` - different bit positions)
+- **Group memberships** - all groups with well-known RID resolution
+- **Extra SIDs** - SID history entries, with cross-domain SIDs highlighted
+- **Ticket flags** - forwardable, renewable, etc.
+- **PAC buffers** - all buffer types with sizes
+- **Attack paths** - AS-REP roastable, unconstrained delegation, constrained delegation, Protected Users bypass, etc.
 
 ## Dependencies
 
@@ -165,4 +165,4 @@ For the nxc module, [NetExec](https://github.com/Penntest-dog/NetExec) must be i
 
 ---
 
-*Kerberos port 88 only — no LDAP, no SAMR, no files written on the DC.*
+*Kerberos port 88 only - no LDAP, no SAMR, no files written on the DC.*
