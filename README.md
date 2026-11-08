@@ -125,7 +125,7 @@ python3 u2u_pac_steal.py DOMAIN/user:password -t users.txt -dc-ip 10.0.0.1 -json
 
 ## OPSEC Notes
 
-Both the standalone tool and the nxc module use a two-stage TGT request for quieter authentication:
+The standalone tool uses a two-stage TGT request for quieter authentication:
 
 1. **Unauthenticated AS-REQ** to negotiate encryption type and salt from the KDC
 2. **AES256 key derivation** from the KDC-provided salt (avoids RC4, which is flagged by most EDR/SIEM)
