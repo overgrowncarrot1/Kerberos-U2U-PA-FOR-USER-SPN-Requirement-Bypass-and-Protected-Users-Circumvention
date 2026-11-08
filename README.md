@@ -35,33 +35,6 @@ This is the same PAC the KDC builds for a legitimate service ticket — the full
 - Network access to a Domain Controller (TCP 88)
 - **Nothing else** — no SPN, no GenericWrite, no delegation rights, no machine account
 
-## Attack Flow
-
-```
-Attacker (any domain user)                    KDC
-    |                                          |
-    |--- AS-REQ (standard auth) ------------->|
-    |<-- AS-REP (TGT + session key) ---------|
-    |                                          |
-    |--- TGS-REQ ---------------------------->|
-    |     KDC-Options:                         |
-    |       forwardable     = TRUE             |
-    |       enc-tkt-in-skey = TRUE  (U2U)     |
-    |     sname: attacker (NT_PRINCIPAL)       |
-    |     PA-FOR-USER:                         |
-    |       userName: target_user              |
-    |     additional-tickets: attacker's TGT   |
-    |                                          |
-    |<-- TGS-REP ------------------------------|
-    |     cname: target_user                   |
-    |     ticket:                              |
-    |       encrypted with TGT session key     |
-    |       contains target's real PAC         |
-    |                                          |
-    |--- Decrypt with known session key        |
-    |--- Parse PAC: SID, groups, privs         |
-```
-
 ### TGS-REQ Structure
 
 ```
